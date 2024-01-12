@@ -11,11 +11,6 @@ use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-    }
-
     public function getAllProjects()
     {
         $ownerId = auth()->user()->id;

@@ -10,22 +10,17 @@ use Illuminate\Validation\ValidationException;
 
 class TaskController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api');
-    }
-
     public function index($projectId)
     {
         $tasks = Task::where('project_id', $projectId)->get();
         return view('tasks.index', compact('tasks', 'projectId'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, $projectId)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'projectId' => 'required|exists:projects,id',
+                'projectId' => 'required',
                 'title' => 'required|max:255',
                 'description' => 'nullable',
             ]);
@@ -34,11 +29,14 @@ class TaskController extends Controller
                 return response()->json(['error' => $validator->errors()], 422);
             }
 
-            $projectId = $request->projectId;
-            // $project = Project::find($projectId);
-            // if (!$project) {
-            //     return response()->json(['error' => 'Project not found'], 404);
-            // }
+            $ownerId = auth()->user()->id;
+            $project = Project::where('id', $projectId)
+                ->where('owner', $ownerId)
+                ->first();
+
+            if (!$project) {
+                return response()->json(['error' => 'Project not found'], 404);
+            }
 
             $task = Task::create([
                 'project_id' => $projectId,
@@ -55,29 +53,45 @@ class TaskController extends Controller
         }
     }
 
-    public function getAllTasksByProjectId($projectId)
+    public function getSingleProjectWithTasks($projectId)
     {
-        $validator = Validator::make(['project_id' => $projectId], [
-            'project_id' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
+        $userId = auth()->user()->id;
         $project = Project::find($projectId);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }
 
+        if ($project->id != $userId) {
+            $isTeamMember = TeamMember::where('project_id', $projectId)
+                ->where('user_id', $userId)
+                ->exists();
+            if (!$isTeamMember) {
+                return response()->json(['error' => 'You do not have access to this project.'], 400);
+            }
+        }
+
         $tasks = Task::where('project_id', $projectId)->get();
+
+        $project->owner = $project->id == $userId;
 
         return response()->json(['project' => $project, 'tasks' => $tasks], 200);
     }
 
-    public function update(Request $request, $taskId)
+    public function update(Request $request, $projectId, $taskId)
     {
-        $task = Task::find($taskId);
+        $ownerId = auth()->user()->id;
+        $projectId = $request->projectId;
+        $project = Project::where('id', $projectId)
+            ->where('owner', $ownerId)
+            ->first();
+
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $task = Task::where('id', $taskId)
+            ->where('project_id', $projectId)
+            ->first();
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 404);
         }
@@ -105,12 +119,23 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    public function destroy($taskId)
+    public function destroy($projectId, $taskId)
     {
-        $task = Task::find($taskId);
+        $ownerId = auth()->user()->id;
+        $project = Project::where('id', $projectId)
+            ->where('user_id', $ownerId)
+            ->first();
+        if (!$project) {
+            return response()->json(['error' => 'project not found or you have not right access'], 400);
+        }
+
+        $task = Task::where('id', $taskId)
+            ->where('project_id', $projectId)
+            ->first();
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 404);
         }
+        
         $task->delete();
 
         return response()->json(['message' => 'task deleted successfully', 'taskId' => $taskId], 200);
