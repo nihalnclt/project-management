@@ -53,30 +53,6 @@ class TaskController extends Controller
         }
     }
 
-    public function getSingleProjectWithTasks($projectId)
-    {
-        $userId = auth()->user()->id;
-        $project = Project::find($projectId);
-        if (!$project) {
-            return response()->json(['error' => 'Project not found'], 404);
-        }
-
-        if ($project->id != $userId) {
-            $isTeamMember = TeamMember::where('project_id', $projectId)
-                ->where('user_id', $userId)
-                ->exists();
-            if (!$isTeamMember) {
-                return response()->json(['error' => 'You do not have access to this project.'], 400);
-            }
-        }
-
-        $tasks = Task::where('project_id', $projectId)->get();
-
-        $project->owner = $project->id == $userId;
-
-        return response()->json(['project' => $project, 'tasks' => $tasks], 200);
-    }
-
     public function update(Request $request, $projectId, $taskId)
     {
         $ownerId = auth()->user()->id;
@@ -139,5 +115,36 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->json(['message' => 'task deleted successfully', 'taskId' => $taskId], 200);
+    }
+
+    public function assignTaskToTeamMembers(Request $request, $projectId, $taskId)
+    {
+        $validator = Validator::make($request->all(), [
+            'assignee' => 'required|numberic|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $ownerId = auth()->user()->id;
+        $project = Project::where('id', $projectId)
+            ->where('owner', $ownerId)
+            ->first();
+        if (!$project) {
+            return response()->json(['error' => 'Project not found or you don\'t have right access'], 400);
+        }
+
+        $task = Task::where('id', $taskId)
+            ->where('project_id', $projectId)
+            ->first();
+        if (!$project) {
+            return response()->json(['error' => 'Task not found'], 400);
+        }
+
+        $task->assignee = $request->assignee;
+        $task.save();
+
+        return response()->json(['message' => 'task successfully assigned', 'taskId' => $taskId], 200);
     }
 }

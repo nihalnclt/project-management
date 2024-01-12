@@ -25,12 +25,12 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/tasks/{projectId}', [TaskController::class, 'store']);
-    Route::get('/tasks/{projectId}', [TaskController::class, 'getSingleProjectWithTasks']);
-    Route::delete('/tasks/{taskId}', [TaskController::class, 'destroy']);
+    Route::delete('/tasks/{projectId}/{taskId}', [TaskController::class, 'destroy']);
     Route::patch('/tasks/{projectId}/{taskId}', [TaskController::class, 'update']);
-
+    
     Route::get('/projects', [ProjectController::class, 'getAllProjects']);
     Route::post('/projects/{projectId}/invite', [ProjectController::class, 'inviteOthersToProject']);
-
+    Route::get('/projects/{projectId}', [ProjectController::class, 'getSingleProjectWithTasks']);
+    
     Route::get('/refresh', [AuthController::class, 'refresh']);
 });

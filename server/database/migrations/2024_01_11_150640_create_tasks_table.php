@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('status', ['to-do', 'in-progress', 'done'])->default('to-do');
+            $table->unsignedBigInteger('assignee')->nullable();
+            $table->foreign('assignee')->references('id')->on('users');
             $table->timestamps();
         });
     }

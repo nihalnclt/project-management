@@ -35,13 +35,6 @@ class ProjectController extends Controller
         return response()->json($allProjects);
     }
 
-    public function getAllProjectsWithTeamMembers()
-    {
-        $projects = Project::with('teamMembers.user')->get();
-
-        return response()->json($projects);
-    }
-
     public function inviteOthersToProject(Request $request, $projectId)
     {
         try {
@@ -82,5 +75,29 @@ class ProjectController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function getSingleProjectWithTasks($projectId)
+    {
+        $userId = auth()->user()->id;
+        $project = Project::find($projectId);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        if ($project->id != $userId) {
+            $isTeamMember = TeamMember::where('project_id', $projectId)
+                ->where('user_id', $userId)
+                ->exists();
+            if (!$isTeamMember) {
+                return response()->json(['error' => 'You do not have access to this project.'], 400);
+            }
+        }
+
+        $tasks = Task::where('project_id', $projectId)->get();
+
+        $project->owner = $project->id == $userId;
+
+        return response()->json(['project' => $project, 'tasks' => $tasks], 200);
     }
 }
