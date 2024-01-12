@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\Project;
+use App\Models\TeamMember;
 use Illuminate\Http\Request;
-use Illuminate\Http\TeamMember;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -151,7 +151,7 @@ class TaskController extends Controller
         }
 
         $task->assignee = $request->assignee;
-        $task.save();
+        $task->save();
 
         return response()->json(['message' => 'task successfully assigned', 'taskId' => $taskId], 200);
     }
@@ -161,28 +161,34 @@ class TaskController extends Controller
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:to-do,in-progress,done', 
         ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
         $userId = auth()->user()->id;
         $project = Project::find($projectId);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }
 
-        $isTeamMember = TeamMember::where('project_id', $projectId)
-            ->where('user_id', $userId)
-            ->exists();
-        if (!$isTeamMember) {
-            return response()->json(['error' => 'This user is not a member of this project'], 400);
+        if ($project->owner != $userId) {
+            $isTeamMember = TeamMember::where('project_id', $projectId)
+                ->where('user_id', $userId)
+                ->exists();
+            if (!$isTeamMember) {
+                return response()->json(['error' => 'This user is not a member of this project'], 400);
+            }
         }
 
         $task = Task::where('id', $taskId)
-        ->where('project_id', $projectId)
-        ->first();
+            ->where('project_id', $projectId)
+            ->first();
         if (!$task) {
             return response()->json(['error' => 'Task not found'], 400);
         }
 
         $task->status = $request->status;
-        $task.save();
+        $task->save();
 
         return response()->json(['message' => 'task\'s status successfully changed'], 200);
     }
