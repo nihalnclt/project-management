@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +29,7 @@ Route::group(['middleware'=>'api'],function(){
     Route::delete('/tasks/{taskId}', [TaskController::class, 'destroy']);
     Route::patch('/tasks/{taskId}', [TaskController::class, 'update']);
 
-    Route::get('/projects', [ProjectController::class, 'getAllProjectsWithTeamMembers']);
+    Route::get('/projects', [ProjectController::class, 'getAllProjects']);
 
     Route::get('/refresh', [AuthController::class, 'refresh']);
 });

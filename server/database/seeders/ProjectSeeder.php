@@ -14,8 +14,8 @@ class ProjectSeeder extends Seeder
     public function run(): void
     {
         $projectsData = [
-            ['name' => 'Project 1', 'description' => 'Test Description'],
-            ['name' => 'Project 2', 'description' => 'Test Description'],
+            ['name' => 'Project 1', 'description' => 'Test Description', 'owner' => 1],
+            ['name' => 'Project 2', 'description' => 'Test Description', 'owner' => 1],
         ];
 
         foreach ($projectsData as $projectData) {
