@@ -3,57 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class TaskController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
+
     public function index($projectId)
     {
         $tasks = Task::where('project_id', $projectId)->get();
         return view('tasks.index', compact('tasks', 'projectId'));
     }
 
-    public function store(Request $request, $projectId)
+    public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'nullable',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'projectId' => 'required|exists:projects,id',
+                'title' => 'required|max:255',
+                'description' => 'nullable',
+            ]);
 
-        Task::create([
-            'project_id' => $projectId,
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => 'to-do',
-        ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
 
-        return response()->json(['task_id' => $task->id], 201);
+            $projectId = $request->projectId;
+            // $project = Project::find($projectId);
+            // if (!$project) {
+            //     return response()->json(['error' => 'Project not found'], 404);
+            // }
+
+            $task = Task::create([
+                'project_id' => $projectId,
+                'title' => $request->title,
+                'description' => $request->description,
+                'status' => 'to-do',
+            ]);
+
+            return response()->json($task, 201);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    public function update(Request $request, $projectId, $taskId)
+    public function getAllTasksByProjectId($projectId)
     {
-        $task = Task::findOrFail($taskId);
-
-        $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'nullable',
-            'status' => 'required|in:to-do,in-progress,done',
+        $validator = Validator::make(['project_id' => $projectId], [
+            'project_id' => 'required',
         ]);
 
-        $task->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => $request->status,
-        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
 
-        return redirect()->route('projects.tasks.index', $projectId);
+        $project = Project::find($projectId);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $tasks = Task::where('project_id', $projectId)->get();
+
+        return response()->json(['project' => $project, 'tasks' => $tasks], 200);
     }
 
-    public function destroy($projectId, $taskId)
+    public function update(Request $request, $taskId)
     {
-        $task = Task::findOrFail($taskId);
+        $task = Task::find($taskId);
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
+
+        $request->validate([
+            'title' => 'nullable|max:255',
+            'description' => 'nullable',
+            'status' => 'nullable|in:to-do,in-progress,done',
+        ]);
+
+        if ($request->has('title')) {
+            $task->title = $request->title;
+        }
+
+        if ($request->has('description')) {
+            $task->description = $request->description;
+        }
+    
+        if ($request->has('status')) {
+            $task->status = $request->status;
+        }
+
+        $task->save();
+
+        return response()->json($task, 201);
+    }
+
+    public function destroy($taskId)
+    {
+        $task = Task::find($taskId);
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 404);
+        }
         $task->delete();
 
-        return redirect()->route('projects.tasks.index', $projectId);
+        return response()->json(['message' => 'task deleted successfully', 'taskId' => $taskId], 200);
     }
 }
