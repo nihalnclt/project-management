@@ -30,6 +30,7 @@ Route::group(['middleware'=>'api'],function(){
     Route::patch('/tasks/{taskId}', [TaskController::class, 'update']);
 
     Route::get('/projects', [ProjectController::class, 'getAllProjects']);
+    Route::post('/projects/{projectId}/invite', [ProjectController::class, 'inviteOthersToProject']);
 
     Route::get('/refresh', [AuthController::class, 'refresh']);
 });

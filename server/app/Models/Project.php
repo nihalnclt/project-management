@@ -9,6 +9,11 @@ class Project extends Model
 {
     protected $table = 'projects';
 
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner');
+    }
+
     public function teamMembers()
     {
         return $this->hasMany(TeamMember::class, 'project_id');
