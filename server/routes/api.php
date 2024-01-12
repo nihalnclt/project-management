@@ -21,16 +21,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:api'])->group(function () {
-    Route::post('/tasks/{projectId}', [TaskController::class, 'store']);
-    Route::delete('/tasks/{projectId}/{taskId}', [TaskController::class, 'destroy']);
-    Route::patch('/tasks/{projectId}/{taskId}', [TaskController::class, 'update']);
-    
     Route::get('/projects', [ProjectController::class, 'getAllProjects']);
     Route::post('/projects/{projectId}/invite', [ProjectController::class, 'inviteOthersToProject']);
     Route::get('/projects/{projectId}', [ProjectController::class, 'getSingleProjectWithTasks']);
+
+    Route::post('/tasks/{projectId}', [TaskController::class, 'store']);
+    Route::delete('/tasks/{projectId}/{taskId}', [TaskController::class, 'destroy']);
+    Route::patch('/tasks/{projectId}/{taskId}', [TaskController::class, 'update']);
+    Route::post('/tasks/{projectId}/{taskId}/assign', [TaskController::class, 'assignTaskToTeamMembers']);
     
     Route::get('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
