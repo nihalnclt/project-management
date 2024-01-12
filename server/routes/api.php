@@ -33,7 +33,9 @@ Route::middleware(['auth:api'])->group(function () {
     Route::delete('/tasks/{projectId}/{taskId}', [TaskController::class, 'destroy']);
     Route::patch('/tasks/{projectId}/{taskId}', [TaskController::class, 'update']);
     Route::post('/tasks/{projectId}/{taskId}/assign', [TaskController::class, 'assignTaskToTeamMembers']);
+    Route::post('/tasks/{projectId}/{taskId}/change-status', [TaskController::class, 'changeTaskStatus']);
     
+    Route::get('/me', [AuthController::class, 'me']);
     Route::get('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });

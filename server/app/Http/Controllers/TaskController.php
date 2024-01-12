@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Http\TeamMember;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -135,10 +136,17 @@ class TaskController extends Controller
             return response()->json(['error' => 'Project not found or you don\'t have right access'], 400);
         }
 
+        $isTeamMember = TeamMember::where('project_id', $projectId)
+            ->where('user_id', $request->assignee)
+            ->exists();
+        if (!$isTeamMember) {
+            return response()->json(['error' => 'This user is not a member of this project'], 400);
+        }
+
         $task = Task::where('id', $taskId)
             ->where('project_id', $projectId)
             ->first();
-        if (!$project) {
+        if (!$task) {
             return response()->json(['error' => 'Task not found'], 400);
         }
 
@@ -146,5 +154,36 @@ class TaskController extends Controller
         $task.save();
 
         return response()->json(['message' => 'task successfully assigned', 'taskId' => $taskId], 200);
+    }
+
+    public function changeTaskStatus(Request $request, $projectId, $taskId)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:to-do,in-progress,done', 
+        ]);
+        $userId = auth()->user()->id;
+        $project = Project::find($projectId);
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $isTeamMember = TeamMember::where('project_id', $projectId)
+            ->where('user_id', $userId)
+            ->exists();
+        if (!$isTeamMember) {
+            return response()->json(['error' => 'This user is not a member of this project'], 400);
+        }
+
+        $task = Task::where('id', $taskId)
+        ->where('project_id', $projectId)
+        ->first();
+        if (!$task) {
+            return response()->json(['error' => 'Task not found'], 400);
+        }
+
+        $task->status = $request->status;
+        $task.save();
+
+        return response()->json(['message' => 'task\'s status successfully changed'], 200);
     }
 }

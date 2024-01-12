@@ -29,9 +29,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = JWTAuth::fromUser($user);
-
-        return response()->json(['user' => $user, 'token' => $token]);
+        return response()->json(['message' => 'success']);
     }
 
     public function login(Request $request)
@@ -55,20 +53,17 @@ class AuthController extends Controller
             return response()->json(['error' => 'Could not create token'], 500);
         }
 
-        $user = JWTAuth::user();
+        return $this->respondWithToken($token);
+    }
 
-        return response()->json(['user' => $user, 'token' => $token]);
+    public function me()
+    {
+        return response()->json(auth()->user());
     }
 
     public function refresh()
     {
-        try {
-            $token = JWTAuth::parseToken()->refresh();
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not refresh token'], 401);
-        }
-
-        return response()->json(['token' => $token]);
+        return $this->respondWithToken(auth()->refresh());
     }
 
     public function logout(Request $request) 
@@ -76,5 +71,15 @@ class AuthController extends Controller
         auth()->logout();
 
         return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    protected function respondWithToken($token)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => auth()->user()
+        ]);
     }
 }
