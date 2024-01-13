@@ -15,7 +15,8 @@ export type Project = {
     id: number;
     name: string;
     description?: string;
-    owner: string;
+    owner: User;
+    team_members: TeamMember[];
     created_at: string;
     updated_at: string;
 };

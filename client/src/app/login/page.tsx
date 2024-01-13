@@ -46,7 +46,7 @@ export default function LoginPage() {
 
     return (
         <div className="flex flex-col items-center justify-center h-[100vh]">
-            <div className="border border-tableBorderColor rounded p-7 w-[450px] max-w-[100%]">
+            <div className="border bg-white border-tableBorderColor rounded shadow-sm p-7 w-[450px] max-w-[100%]">
                 <div className="text-center mb-4">
                     <h2 className="font-bold text-lg">Login</h2>
                     <span className="text-sm text-grayColor font-medium block mt-1">

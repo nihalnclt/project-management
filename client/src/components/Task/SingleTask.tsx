@@ -40,7 +40,7 @@ export default function SingleTask({ task }: SingleTaskProps) {
         },
     });
 
-    const { jwtToken } = useSelector((state: RootState) => state.user);
+    const { jwtToken, user } = useSelector((state: RootState) => state.user);
     const { project, tasks } = useSelector((state: RootState) => state.project);
     const dispatch = useDispatch();
 
@@ -83,7 +83,7 @@ export default function SingleTask({ task }: SingleTaskProps) {
             style={{ opacity: isDragging ? 0.5 : 1 }}
         >
             <div className="p-2">
-                <h3>{task.title}</h3>
+                <h3 className="font-medium text-[15px]">{task.title}</h3>
                 <p className="text-sm text-grayColor">{task?.description || ""}</p>
             </div>
             <div className="border-t border-dashed p-2 flex items-center justify-between">
@@ -91,7 +91,7 @@ export default function SingleTask({ task }: SingleTaskProps) {
                     <div className="flex items-center gap-2">
                         <div className="w-[30px] h-[30px] bg-grayColor rounded-full overflow-hidden">
                             <img
-                                src="https://t4.ftcdn.net/jpg/03/49/49/79/360_F_349497933_Ly4im8BDmHLaLzgyKg2f2yZOvJjBtlw5.webp"
+                                src={`https://ui-avatars.com/api/?name=${task?.assignee?.name}&background=random&color=fff`}
                                 alt=""
                                 className="w-full h-full object-cover"
                             />
@@ -108,26 +108,27 @@ export default function SingleTask({ task }: SingleTaskProps) {
                 ) : (
                     <span className="text-sm text-grayColor">Not Assigned</span>
                 )}
-                <div className="flex gap-2">
-                    <button
-                        className="bg-transparent h-auto text-green-500 text-lg"
-                        onClick={() => setIsEditTaskModalOpen(true)}
-                    >
-                        <MdOutlineModeEdit />
-                    </button>
-                    <button
-                        className="bg-transparent h-auto text-red-500 text-lg"
-                        onClick={() => deleteSingleTask(task.id)}
-                    >
-                        <MdDelete />
-                    </button>
+                {project?.owner?.id === user?.id && (
+                    <div className="flex gap-2">
+                        <button
+                            className="bg-transparent h-auto text-green-500 text-lg"
+                            onClick={() => setIsEditTaskModalOpen(true)}
+                        >
+                            <MdOutlineModeEdit />
+                        </button>
+                        <button
+                            className="bg-transparent h-auto text-red-500 text-lg"
+                            onClick={() => deleteSingleTask(task.id)}
+                        >
+                            <MdDelete />
+                        </button>
 
-                    {isEditTaskModalOpen && (
-                        <EditTaskModal setIsEditTaskModalOpen={setIsEditTaskModalOpen} task={task} />
-                    )}
-                </div>
+                        {isEditTaskModalOpen && (
+                            <EditTaskModal setIsEditTaskModalOpen={setIsEditTaskModalOpen} task={task} />
+                        )}
+                    </div>
+                )}
             </div>
-            {/* <span className="text-sm underline text-blue-500 block mt-1">Change Status</span> */}
         </div>
     );
 }

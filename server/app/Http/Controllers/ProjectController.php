@@ -16,20 +16,16 @@ class ProjectController extends Controller
     {
         $ownerId = auth()->user()->id;
         
-        $ownedProjects = Project::where('owner', $ownerId)
-            ->get()
-            ->map(function ($project) use ($ownerId) {
-            $project['owned'] = true;
-            return $project;
-        });
+        $ownedProjects = Project::with("teamMembers.user")
+            ->with("owner")
+            ->where('owner', $ownerId)
+            ->get();
 
-        $teamProjects = Project::whereHas('teamMembers', function ($query) use ($ownerId) {
-            $query->where('user_id', $ownerId);
-        })->get()
-            ->map(function ($project) use ($ownerId) {
-            $project['owned'] = false;
-            return $project;
-        });
+        $teamProjects = Project::with("teamMembers.user")
+            ->with("owner")
+            ->whereHas('teamMembers', function ($query) use ($ownerId) {
+                $query->where('user_id', $ownerId);
+            })->get();
 
         $allProjects = $ownedProjects->merge($teamProjects);
 
@@ -83,7 +79,9 @@ class ProjectController extends Controller
     public function getSingleProjectWithTasks($projectId)
     {
         $userId = auth()->user()->id;
-        $project = Project::with('teamMembers.user')->find($projectId);
+        $project = Project::with('teamMembers.user')
+            ->with('owner')
+            ->find($projectId);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }

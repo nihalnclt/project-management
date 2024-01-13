@@ -29,8 +29,8 @@ export default function TasksBoard({ tasks, boardStatus }: TasksBoardProps) {
                     {boardStatus === TaskStatus.ToDo
                         ? "TODO"
                         : boardStatus === TaskStatus.InProgress
-                        ? "In Progress"
-                        : "Done"}
+                        ? "IN PROGRESS"
+                        : "DONE"}
                 </h3>
             </div>
             <div ref={drop} data-handler-id={handlerId} className="min-h-[50vh] pb-[200px]">

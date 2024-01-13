@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 
 import RequireAuth from "../lib/RequireAuth";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 export default function RootLayout({ children }: any) {
+    const { user } = useSelector((state: RootState) => state.user);
+
     return (
         <RequireAuth>
             <div>
@@ -15,7 +21,7 @@ export default function RootLayout({ children }: any) {
                     <div className="">
                         <div className="w-[30px] h-[30px] bg-grayColor rounded-full overflow-hidden">
                             <img
-                                src="https://t4.ftcdn.net/jpg/03/49/49/79/360_F_349497933_Ly4im8BDmHLaLzgyKg2f2yZOvJjBtlw5.webp"
+                                src={`https://ui-avatars.com/api/?name=${user?.name}&background=random&color=fff`}
                                 alt=""
                                 className="w-full h-full object-cover"
                             />
