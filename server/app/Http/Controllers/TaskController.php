@@ -21,7 +21,6 @@ class TaskController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'projectId' => 'required',
                 'title' => 'required|max:255',
                 'description' => 'nullable',
             ]);

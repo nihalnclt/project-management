@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\TeamMember;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -85,7 +86,7 @@ class ProjectController extends Controller
             return response()->json(['error' => 'Project not found'], 404);
         }
 
-        if ($project->id != $userId) {
+        if ($project->owner != $userId) {
             $isTeamMember = TeamMember::where('project_id', $projectId)
                 ->where('user_id', $userId)
                 ->exists();
@@ -96,7 +97,7 @@ class ProjectController extends Controller
 
         $tasks = Task::where('project_id', $projectId)->get();
 
-        $project->owner = $project->id == $userId;
+        $project->owner = $project->owner == $userId;
 
         return response()->json(['project' => $project, 'tasks' => $tasks], 200);
     }

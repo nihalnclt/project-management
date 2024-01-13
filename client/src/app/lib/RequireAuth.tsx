@@ -19,7 +19,7 @@ export default function RequireAuth({ children }: any) {
                 },
             });
 
-            dispatch(setUser(response.data));
+            dispatch(setUser({ user: response.data, access_token: jwtToken || "" }));
             setIsLoading(false);
         } catch (err) {
             router.push("/login");

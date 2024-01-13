@@ -30,8 +30,9 @@ const usersSlice = createSlice({
             localStorage.setItem("token", action.payload?.access_token);
         },
 
-        setUser: (state, action: PayloadAction<User>) => {
-            state.user = action.payload;
+        setUser: (state, action: PayloadAction<SetUserPayload>) => {
+            state.user = action.payload.user;
+            state.jwtToken = action.payload?.access_token || "";
             state.isLoggedIn = true;
         },
     },
