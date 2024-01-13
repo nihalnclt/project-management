@@ -1,7 +1,6 @@
 import axios from "@/axios";
 import { addNewTeamMembers } from "@/redux/slices/projectSlice";
 import { RootState } from "@/redux/store";
-import { TeamMember } from "@/types";
 import { AxiosError } from "axios";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,7 +32,7 @@ export default function TeamMembersModal({ setIsTeamMembersModalOpen }: TeamMemb
                 }
             );
 
-            dispatch(addNewTeamMembers(response.data?.temMember))
+            dispatch(addNewTeamMembers(response.data?.temMember));
 
             setEmail("");
             setIsLoading(false);
@@ -76,18 +75,18 @@ export default function TeamMembersModal({ setIsTeamMembersModalOpen }: TeamMemb
                             teamMembers.map((teamMember, index) => {
                                 return (
                                     <div key={index} className="flex items-center gap-2 mt-3">
-                                        <div className="w-[35px] h-[35px] bg-grayColor rounded-full overflow-hidden">
+                                        <div className="w-[30px] h-[30px] bg-grayColor rounded-full overflow-hidden">
                                             <img
-                                                src="https://t4.ftcdn.net/jpg/03/49/49/79/360_F_349497933_Ly4im8BDmHLaLzgyKg2f2yZOvJjBtlw5.webp"
+                                                src={`https://ui-avatars.com/api/?name=${teamMember.user.name}&background=random&color=fff`}
                                                 alt=""
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
                                         <div>
-                                            <span className="block leading-5 capitalize">
+                                            <span className="block leading-4 capitalize text-sm">
                                                 {teamMember.user.name}
                                             </span>
-                                            <span className="block text-sm text-grayColor leading-5">
+                                            <span className="block text-sm text-grayColor leading-4 mt-[2px]">
                                                 {teamMember.user.email}
                                             </span>
                                         </div>

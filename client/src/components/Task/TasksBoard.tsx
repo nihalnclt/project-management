@@ -35,8 +35,9 @@ export default function TasksBoard({ tasks, boardStatus }: TasksBoardProps) {
             </div>
             <div ref={drop} data-handler-id={handlerId} className="min-h-[50vh] pb-[200px]">
                 {tasks?.length < 1 ? (
-                    <div className="text-grayColor p-4 text-center text-sm font-medium">
-                        No Tasks Found..!
+                    <div className="text-grayColor p-4 text-center text-sm">
+                        <span className="font-medium">No Tasks Found..!</span>
+                        <span className="block mt-1">Add new Task or Drag and Drop task to this board</span>
                     </div>
                 ) : (
                     tasks?.map((task, index) => {
