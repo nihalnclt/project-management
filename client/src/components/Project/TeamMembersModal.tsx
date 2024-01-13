@@ -1,28 +1,23 @@
 import axios from "@/axios";
+import { addNewTeamMembers } from "@/redux/slices/projectSlice";
 import { RootState } from "@/redux/store";
 import { TeamMember } from "@/types";
 import { AxiosError } from "axios";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface TeamMembersModalProps {
     setIsTeamMembersModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    projectId: number;
-    addNewTeamMembers: (teamMember: TeamMember) => void;
-    teamMembers: TeamMember[];
 }
 
-export default function TeamMembersModal({
-    setIsTeamMembersModalOpen,
-    projectId,
-    addNewTeamMembers,
-    teamMembers,
-}: TeamMembersModalProps) {
+export default function TeamMembersModal({ setIsTeamMembersModalOpen }: TeamMembersModalProps) {
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     const { jwtToken } = useSelector((state: RootState) => state.user);
+    const { project, teamMembers } = useSelector((state: RootState) => state.project);
+    const dispatch = useDispatch();
 
     const addTeamMember = async (e: React.FormEvent) => {
         try {
@@ -31,14 +26,14 @@ export default function TeamMembersModal({
             setError("");
 
             const response = await axios.post(
-                `/projects/${projectId}/invite`,
+                `/projects/${project?.id}/invite`,
                 { email },
                 {
                     headers: { Authorization: "Bearer " + jwtToken },
                 }
             );
 
-            addNewTeamMembers(response.data?.temMember);
+            dispatch(addNewTeamMembers(response.data?.temMember))
 
             setEmail("");
             setIsLoading(false);

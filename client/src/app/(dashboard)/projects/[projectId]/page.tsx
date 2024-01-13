@@ -4,12 +4,13 @@ import axios from "@/axios";
 import TeamMembersModal from "@/components/Project/TeamMembersModal";
 import CreateTaskModal from "@/components/Task/CreateTaskModal";
 import TasksBoard from "@/components/Task/TasksBoard";
+import { updateInitialData } from "@/redux/slices/projectSlice";
 import { RootState } from "@/redux/store";
-import { Project, Task, TaskStatus, TeamMember, User } from "@/types";
+import { TaskStatus } from "@/types";
 import React, { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface SingleProjectPageProps {
     params: {
@@ -17,20 +18,15 @@ interface SingleProjectPageProps {
     };
 }
 
-interface TaskMap {
-    [index: number]: Task[];
-}
-
 const statuses: TaskStatus[] = Object.values(TaskStatus);
 
 export default function SingleProjectPage({ params }: SingleProjectPageProps) {
-    const [project, setProject] = useState<Project>();
-    const [tasks, setTasks] = useState<Task[]>([]);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [isTeamMembersModalOpen, setIsTeamMembersModalOpen] = useState(false);
 
     const { jwtToken } = useSelector((state: RootState) => state.user);
+    const { project, tasks, teamMembers } = useSelector((state: RootState) => state.project);
+    const dispatch = useDispatch();
 
     const fetchSingleProject = async () => {
         try {
@@ -38,55 +34,13 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
                 headers: { Authorization: "Bearer " + jwtToken },
             });
 
-            setProject(response.data?.project);
-            setTeamMembers(response?.data?.project?.team_members || []);
-            setTasks(response.data?.tasks);
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
-    const addNewTodoTask = (task: Task) => {
-        setTasks((prev) => {
-            return [...prev, task];
-        });
-    };
-
-    const addNewTeamMembers = (teamMember: TeamMember) => {
-        setTeamMembers((prev) => {
-            return [...prev, teamMember];
-        });
-    };
-
-    const changeTaskStatus = async (id: number, hoverStatus: TaskStatus) => {
-        try {
-            const taskIndex = tasks.findIndex((t) => t.id === id);
-            if (taskIndex !== -1) {
-                tasks[taskIndex].status = hoverStatus;
-                setTasks(JSON.parse(JSON.stringify(tasks)));
-
-                await axios.post(
-                    `/tasks/${params.projectId}/${id}/change-status`,
-                    { status: hoverStatus },
-                    { headers: { Authorization: "Bearer " + jwtToken } }
-                );
-            }
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
-    const deleteTask = async (taskId: number) => {
-        try {
-            const isConfirm = window.confirm("Are you sure you want to delete?");
-            if (isConfirm) {
-                await axios.delete(`/tasks/${params.projectId}/${taskId}`, {
-                    headers: { Authorization: "Bearer " + jwtToken },
-                });
-
-                const filteredTasks = tasks.filter((task) => task.id !== taskId);
-                setTasks(filteredTasks);
-            }
+            dispatch(
+                updateInitialData({
+                    project: response.data?.project,
+                    teamMembers: response?.data?.project?.team_members || [],
+                    tasks: response.data?.tasks,
+                })
+            );
         } catch (err) {
             console.log(err);
         }
@@ -116,20 +70,9 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
                     </button>
                 </div>
                 {isTeamMembersModalOpen && (
-                    <TeamMembersModal
-                        setIsTeamMembersModalOpen={setIsTeamMembersModalOpen}
-                        projectId={params.projectId}
-                        addNewTeamMembers={addNewTeamMembers}
-                        teamMembers={teamMembers}
-                    />
+                    <TeamMembersModal setIsTeamMembersModalOpen={setIsTeamMembersModalOpen} />
                 )}
-                {isTaskModalOpen && (
-                    <CreateTaskModal
-                        projectId={params.projectId}
-                        setIsTaskModalOpen={setIsTaskModalOpen}
-                        addNewTodoTask={addNewTodoTask}
-                    />
-                )}
+                {isTaskModalOpen && <CreateTaskModal setIsTaskModalOpen={setIsTaskModalOpen} />}
             </div>
 
             <DndProvider backend={HTML5Backend}>
@@ -142,8 +85,6 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
                                     return task.status === boardStatus;
                                 })}
                                 boardStatus={boardStatus}
-                                changeTaskStatus={changeTaskStatus}
-                                deleteTask={deleteTask}
                             />
                         );
                     })}

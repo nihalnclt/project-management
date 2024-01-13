@@ -97,7 +97,7 @@ class ProjectController extends Controller
             }
         }
 
-        $tasks = Task::where('project_id', $projectId)->get();
+        $tasks = Task::with("assignee")->where('project_id', $projectId)->get();
 
         $project->owner = $project->owner == $userId;
 

@@ -1,52 +1,54 @@
 import axios from "@/axios";
+import { updateTask } from "@/redux/slices/projectSlice";
 import { RootState } from "@/redux/store";
-import { Task } from "@/types";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { Task, TeamMember } from "@/types";
+import { AxiosError } from "axios";
+import React, { useDebugValue, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 interface EditTaskModalProps {
-    projectId: number;
-    setIsTaskModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    addNewTodoTask: (task: Task) => void;
+    setIsEditTaskModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    task: Task;
 }
 
-export default function EditTaskModal({
-    projectId,
-    setIsTaskModalOpen,
-    addNewTodoTask,
-}: EditTaskModalProps) {
+export default function EditTaskModal({ setIsEditTaskModalOpen, task }: EditTaskModalProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState({
-        title: "",
-        description: "",
+        title: task.title || "",
+        description: task.description || "",
+        assignee: task?.assignee?.id || "",
     });
     const [error, setError] = useState("");
 
     const { jwtToken } = useSelector((state: RootState) => state.user);
+    const { project, teamMembers } = useSelector((state: RootState) => state.project);
+    const dispatch = useDispatch();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
         setData((prev) => {
             return { ...prev, [e.target.name]: e.target.value };
         });
     };
 
-    const handleAddTask = async (e: React.FormEvent) => {
+    const handleUpdateTask = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
             setIsLoading(true);
             setError("");
 
-            const resposne = await axios.post(`/tasks/${projectId}`, data, {
+            const resposne = await axios.patch(`/tasks/${project?.id}/${task.id}`, data, {
                 headers: {
                     Authorization: "Bearer " + jwtToken,
                 },
             });
 
-            addNewTodoTask(resposne.data);
-            setIsTaskModalOpen(false);
-        } catch (err) {
+            dispatch(updateTask(resposne.data));
+            setIsEditTaskModalOpen(false);
+        } catch (err: AxiosError | any) {
+            setError(err?.response?.data?.error || "Something went wrong");
             setIsLoading(false);
-            console.log(err);
         }
     };
 
@@ -54,16 +56,16 @@ export default function EditTaskModal({
         <div className="fixed inset-0 w-full h-full bg-[#fff5] flex items-center justify-center z-20 ">
             <div className="bg-[#fff] w-full max-h-[90vh] max-w-[500px]  shadow-[0_1rem_3rem_rgb(0_0_0_/_18%)] overflow-y-auto">
                 <div className="flex items-center justify-between border-b p-4">
-                    <h2 className="font-medium">Add Task</h2>
+                    <h2 className="font-medium">Update Task</h2>
                     <button
                         className="h-auto bg-transparent text-textColor text-xl"
-                        onClick={() => setIsTaskModalOpen(false)}
+                        onClick={() => setIsEditTaskModalOpen(false)}
                     >
                         x
                     </button>
                 </div>
                 <div className="p-4">
-                    <form action="" onSubmit={handleAddTask}>
+                    <form action="" onSubmit={handleUpdateTask}>
                         <div>
                             <label htmlFor="">Title *</label>
                             <input
@@ -76,6 +78,19 @@ export default function EditTaskModal({
                             />
                         </div>
                         <div className="mt-4">
+                            <label htmlFor="">Assignee</label>
+                            <select name="assignee" id="" value={data.assignee || ""} onChange={handleChange}>
+                                <option value="">Select Assignee</option>
+                                {teamMembers?.map((member, index) => {
+                                    return (
+                                        <option value={member.user.id} key={index}>
+                                            {member.user.name}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
+                        <div className="mt-4">
                             <label htmlFor="">Description</label>
                             <textarea
                                 name="description"
@@ -84,23 +99,17 @@ export default function EditTaskModal({
                                 value={data.description || ""}
                             ></textarea>
                         </div>
-                        <div className="mt-4">
-                            <label htmlFor="">Assignee</label>
-                            <select name="" id="">
-                                <option value="">Select Assignee</option>
-                            </select>
-                        </div>
                         {error && <span className="text-sm block text-red-500 mt-2">{error}</span>}
                         <div className="mt-4 flex items-center justify-end gap-[12px]">
                             <button
                                 className="bg-slate-300 text-textColor px-[15px]"
                                 type="button"
-                                onClick={() => setIsTaskModalOpen(false)}
+                                onClick={() => setIsEditTaskModalOpen(false)}
                             >
                                 Cancel
                             </button>
                             <button className="w-[160px]" disabled={isLoading}>
-                                {isLoading ? "Loading..." : "Add Task"}
+                                {isLoading ? "Loading..." : "Update Task"}
                             </button>
                         </div>
                     </form>

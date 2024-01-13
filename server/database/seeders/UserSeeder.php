@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         $usersData = [
             ['name' => 'Nihal', 'email' => 'nihal@gmail.com', 'password' => 'nihal@123'],
             ['name' => 'Appu', 'email' => 'appu@gmail.com', 'password' => 'appu@123'],
-            ['name' => 'Ammue', 'email' => 'ammu@gmail.com', 'password' => 'ammu@123'],
+            ['name' => 'Ammu', 'email' => 'ammu@gmail.com', 'password' => 'ammu@123'],
         ];
 
         foreach ($usersData as $userData) {

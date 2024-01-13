@@ -14,5 +14,11 @@ class Task extends Model
         'title',
         'description',
         'status',
+        'assignee',
     ];
+
+    public function assignee()
+    {
+        return $this->belongsTo(User::class, 'assignee');
+    }
 }

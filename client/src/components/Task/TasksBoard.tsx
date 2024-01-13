@@ -7,11 +7,9 @@ import SingleTask from "./SingleTask";
 interface TasksBoardProps {
     tasks: Task[];
     boardStatus: TaskStatus;
-    changeTaskStatus: (id: number, hoverStatus: TaskStatus) => Promise<void>;
-    deleteTask: (taskId: number) => Promise<void>;
 }
 
-export default function TasksBoard({ tasks, boardStatus, changeTaskStatus, deleteTask }: TasksBoardProps) {
+export default function TasksBoard({ tasks, boardStatus }: TasksBoardProps) {
     const [{ handlerId }, drop] = useDrop({
         accept: "CARD",
         collect(monitor) {
@@ -42,14 +40,7 @@ export default function TasksBoard({ tasks, boardStatus, changeTaskStatus, delet
                     </div>
                 ) : (
                     tasks?.map((task, index) => {
-                        return (
-                            <SingleTask
-                                key={index}
-                                task={task}
-                                changeTaskStatus={changeTaskStatus}
-                                deleteTask={deleteTask}
-                            />
-                        );
+                        return <SingleTask key={index} task={task} />;
                     })
                 )}
             </div>

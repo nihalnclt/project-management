@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\Project;
 use App\Models\TeamMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,7 @@ class TaskController extends Controller
             $validator = Validator::make($request->all(), [
                 'title' => 'required|max:255',
                 'description' => 'nullable',
+                'assignee' => 'nullable|numeric|exists:users,id',
             ]);
 
             if ($validator->fails()) {
@@ -38,12 +40,24 @@ class TaskController extends Controller
                 return response()->json(['error' => 'Project not found'], 404);
             }
 
+            if ($request->assignee) {
+                $isTeamMember = TeamMember::where('project_id', $projectId)
+                    ->where('user_id', $request->assignee)
+                    ->exists();
+                if (!$isTeamMember) {
+                    return response()->json(['error' => 'This user is not a member of this project'], 400);
+                }
+            }
+
             $task = Task::create([
                 'project_id' => $projectId,
                 'title' => $request->title,
                 'description' => $request->description,
+                'assignee' => $request->assignee,
                 'status' => 'to-do',
             ]);
+
+            $task->assignee = $request->assignee ? User::find($request->assignee) : null;
 
             return response()->json($task, 201);
         } catch (ValidationException $e) {
@@ -90,7 +104,23 @@ class TaskController extends Controller
             $task->status = $request->status;
         }
 
+        if ($request->has('assignee')) {
+            if ($task->assignee != $request->assignee) {
+                if ($request->assignee != null) {
+                    $isTeamMember = TeamMember::where('project_id', $projectId)
+                        ->where('user_id', $request->assignee)
+                        ->exists();
+                    if (!$isTeamMember) {
+                        return response()->json(['error' => 'This user is not a member of this project'], 400);
+                    }
+                }
+                $task->assignee = $request->assignee;
+            }
+        }
+
         $task->save();
+
+        $task->assignee = $task->assignee ? User::find($task->assignee) : null;
 
         return response()->json($task, 201);
     }
@@ -115,44 +145,6 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->json(['message' => 'task deleted successfully', 'taskId' => $taskId], 200);
-    }
-
-    public function assignTaskToTeamMembers(Request $request, $projectId, $taskId)
-    {
-        $validator = Validator::make($request->all(), [
-            'assignee' => 'required|numberic|exists:users,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        $ownerId = auth()->user()->id;
-        $project = Project::where('id', $projectId)
-            ->where('owner', $ownerId)
-            ->first();
-        if (!$project) {
-            return response()->json(['error' => 'Project not found or you don\'t have right access'], 400);
-        }
-
-        $isTeamMember = TeamMember::where('project_id', $projectId)
-            ->where('user_id', $request->assignee)
-            ->exists();
-        if (!$isTeamMember) {
-            return response()->json(['error' => 'This user is not a member of this project'], 400);
-        }
-
-        $task = Task::where('id', $taskId)
-            ->where('project_id', $projectId)
-            ->first();
-        if (!$task) {
-            return response()->json(['error' => 'Task not found'], 400);
-        }
-
-        $task->assignee = $request->assignee;
-        $task->save();
-
-        return response()->json(['message' => 'task successfully assigned', 'taskId' => $taskId], 200);
     }
 
     public function changeTaskStatus(Request $request, $projectId, $taskId)

@@ -1,30 +1,30 @@
 import axios from "@/axios";
+import { addNewTask } from "@/redux/slices/projectSlice";
 import { RootState } from "@/redux/store";
-import { Task } from "@/types";
+import { AxiosError } from "axios";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface CreateTaskModalProps {
-    projectId: number;
     setIsTaskModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    addNewTodoTask: (task: Task) => void;
 }
 
-export default function CreateTaskModal({
-    projectId,
-    setIsTaskModalOpen,
-    addNewTodoTask,
-}: CreateTaskModalProps) {
+export default function CreateTaskModal({ setIsTaskModalOpen }: CreateTaskModalProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState({
         title: "",
         description: "",
+        assignee: "",
     });
     const [error, setError] = useState("");
 
     const { jwtToken } = useSelector((state: RootState) => state.user);
+    const { project, teamMembers } = useSelector((state: RootState) => state.project);
+    const dispatch = useDispatch();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
         setData((prev) => {
             return { ...prev, [e.target.name]: e.target.value };
         });
@@ -36,15 +36,16 @@ export default function CreateTaskModal({
             setIsLoading(true);
             setError("");
 
-            const resposne = await axios.post(`/tasks/${projectId}`, data, {
+            const resposne = await axios.post(`/tasks/${project?.id}`, data, {
                 headers: {
                     Authorization: "Bearer " + jwtToken,
                 },
             });
 
-            addNewTodoTask(resposne.data);
+            dispatch(addNewTask(resposne.data));
             setIsTaskModalOpen(false);
-        } catch (err) {
+        } catch (err: AxiosError | any) {
+            setError(err?.response?.data?.error || "Something went wrong");
             setIsLoading(false);
             console.log(err);
         }
@@ -54,7 +55,7 @@ export default function CreateTaskModal({
         <div className="fixed inset-0 w-full h-full bg-[#fff5] flex items-center justify-center z-20 ">
             <div className="bg-[#fff] w-full max-h-[90vh] max-w-[500px]  shadow-[0_1rem_3rem_rgb(0_0_0_/_18%)] overflow-y-auto">
                 <div className="flex items-center justify-between border-b p-4">
-                    <h2 className="font-medium">Add Task</h2>
+                    <h2 className="font-medium">Create Task</h2>
                     <button
                         className="h-auto bg-transparent text-textColor text-xl"
                         onClick={() => setIsTaskModalOpen(false)}
@@ -74,6 +75,19 @@ export default function CreateTaskModal({
                                 value={data.title || ""}
                                 required
                             />
+                        </div>
+                        <div className="mt-4">
+                            <label htmlFor="">Assignee</label>
+                            <select name="assignee" id="" value={data.assignee || ""} onChange={handleChange}>
+                                <option value="">Select Assignee</option>
+                                {teamMembers?.map((member, index) => {
+                                    return (
+                                        <option value={member.user.id} key={index}>
+                                            {member.user.name}
+                                        </option>
+                                    );
+                                })}
+                            </select>
                         </div>
                         <div className="mt-4">
                             <label htmlFor="">Description</label>
