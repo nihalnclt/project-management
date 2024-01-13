@@ -99,7 +99,7 @@ class TaskController extends Controller
     {
         $ownerId = auth()->user()->id;
         $project = Project::where('id', $projectId)
-            ->where('user_id', $ownerId)
+            ->where('owner', $ownerId)
             ->first();
         if (!$project) {
             return response()->json(['error' => 'project not found or you have not right access'], 400);

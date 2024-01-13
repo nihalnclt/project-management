@@ -8,9 +8,10 @@ interface TasksBoardProps {
     tasks: Task[];
     boardStatus: TaskStatus;
     changeTaskStatus: (id: number, hoverStatus: TaskStatus) => Promise<void>;
+    deleteTask: (taskId: number) => Promise<void>;
 }
 
-export default function TasksBoard({ tasks, boardStatus, changeTaskStatus }: TasksBoardProps) {
+export default function TasksBoard({ tasks, boardStatus, changeTaskStatus, deleteTask }: TasksBoardProps) {
     const [{ handlerId }, drop] = useDrop({
         accept: "CARD",
         collect(monitor) {
@@ -41,7 +42,14 @@ export default function TasksBoard({ tasks, boardStatus, changeTaskStatus }: Tas
                     </div>
                 ) : (
                     tasks?.map((task, index) => {
-                        return <SingleTask key={index} task={task} changeTaskStatus={changeTaskStatus} />;
+                        return (
+                            <SingleTask
+                                key={index}
+                                task={task}
+                                changeTaskStatus={changeTaskStatus}
+                                deleteTask={deleteTask}
+                            />
+                        );
                     })
                 )}
             </div>

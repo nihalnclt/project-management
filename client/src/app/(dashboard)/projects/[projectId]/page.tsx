@@ -76,6 +76,22 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
         }
     };
 
+    const deleteTask = async (taskId: number) => {
+        try {
+            const isConfirm = window.confirm("Are you sure you want to delete?");
+            if (isConfirm) {
+                await axios.delete(`/tasks/${params.projectId}/${taskId}`, {
+                    headers: { Authorization: "Bearer " + jwtToken },
+                });
+
+                const filteredTasks = tasks.filter((task) => task.id !== taskId);
+                setTasks(filteredTasks);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     useEffect(() => {
         fetchSingleProject();
     }, []);
@@ -89,7 +105,10 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
                     {/* <span>Created - </span> */}
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-3 bg-orange-500 whitespace-nowrap" onClick={() => setIsTeamMembersModalOpen(true)}>
+                    <button
+                        className="px-3 bg-orange-500 whitespace-nowrap"
+                        onClick={() => setIsTeamMembersModalOpen(true)}
+                    >
                         Team ({teamMembers?.length})
                     </button>
                     <button className="px-3 whitespace-nowrap" onClick={() => setIsTaskModalOpen(true)}>
@@ -124,6 +143,7 @@ export default function SingleProjectPage({ params }: SingleProjectPageProps) {
                                 })}
                                 boardStatus={boardStatus}
                                 changeTaskStatus={changeTaskStatus}
+                                deleteTask={deleteTask}
                             />
                         );
                     })}
