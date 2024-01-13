@@ -65,12 +65,14 @@ class ProjectController extends Controller
                 return response()->json(['error' => 'User is already a member of the project'], 400);
             }
 
-            TeamMember::create([
+            $temMember = TeamMember::create([
                 'project_id' => $projectId,
                 'user_id' => $user->id,
             ]);
 
-            return response()->json(['message' => 'Successfully added user to this project'], 200);
+            $temMember->user = $user;
+
+            return response()->json(['message' => 'Successfully added user to this project', 'temMember' => $temMember], 200);
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->validator->errors()], 422);
         } catch (\Exception $e) {
@@ -81,7 +83,7 @@ class ProjectController extends Controller
     public function getSingleProjectWithTasks($projectId)
     {
         $userId = auth()->user()->id;
-        $project = Project::find($projectId);
+        $project = Project::with('teamMembers.user')->find($projectId);
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }

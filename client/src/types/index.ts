@@ -6,6 +6,11 @@ export type User = {
     updated_at: string;
 };
 
+export type TeamMember = {
+    id: number;
+    user: User;
+}
+
 export type Project = {
     id: number;
     name: string;

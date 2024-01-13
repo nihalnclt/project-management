@@ -54,7 +54,7 @@ export default function CreateTaskModal({
         <div className="fixed inset-0 w-full h-full bg-[#fff5] flex items-center justify-center z-20 ">
             <div className="bg-[#fff] w-full max-h-[90vh] max-w-[500px]  shadow-[0_1rem_3rem_rgb(0_0_0_/_18%)] overflow-y-auto">
                 <div className="flex items-center justify-between border-b p-4">
-                    <h2 className="font-medium mb-2">Add Quota</h2>
+                    <h2 className="font-medium">Add Task</h2>
                     <button
                         className="h-auto bg-transparent text-textColor text-xl"
                         onClick={() => setIsTaskModalOpen(false)}
