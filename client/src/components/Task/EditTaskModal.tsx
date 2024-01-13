@@ -38,7 +38,7 @@ export default function EditTaskModal({ setIsEditTaskModalOpen, task }: EditTask
             setIsLoading(true);
             setError("");
 
-            const resposne = await axios.patch(`/tasks/${project?.id}/${task.id}`, data, {
+            const resposne = await axios.patch(`/projects/${project?.id}/tasks/${task.id}`, data, {
                 headers: {
                     Authorization: "Bearer " + jwtToken,
                 },

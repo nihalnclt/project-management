@@ -35,9 +35,16 @@ const usersSlice = createSlice({
             state.jwtToken = action.payload?.access_token || "";
             state.isLoggedIn = true;
         },
+
+        logoutUser: (state) => {
+            state.isLoggedIn = false;
+            state.jwtToken = "";
+
+            localStorage.setItem("token", "");
+        },
     },
 });
 
-export const { setUser, updateLoginInfo } = usersSlice.actions;
+export const { setUser, updateLoginInfo, logoutUser } = usersSlice.actions;
 
 export default usersSlice.reducer;

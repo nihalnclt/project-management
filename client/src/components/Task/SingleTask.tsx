@@ -51,7 +51,7 @@ export default function SingleTask({ task }: SingleTaskProps) {
                 dispatch(changeTaskStatus({ taskIndex, hoverStatus }));
 
                 await axios.post(
-                    `/tasks/${project?.id}/${id}/change-status`,
+                    `/projects/${project?.id}/tasks/${id}/change-status`,
                     { status: hoverStatus },
                     { headers: { Authorization: "Bearer " + jwtToken } }
                 );
@@ -65,7 +65,7 @@ export default function SingleTask({ task }: SingleTaskProps) {
         try {
             const isConfirm = window.confirm("Are you sure you want to delete?");
             if (isConfirm) {
-                await axios.delete(`/tasks/${project?.id}/${taskId}`, {
+                await axios.delete(`/projects/${project?.id}/tasks/${taskId}`, {
                     headers: { Authorization: "Bearer " + jwtToken },
                 });
 

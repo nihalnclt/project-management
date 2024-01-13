@@ -18,7 +18,7 @@ class TaskController extends Controller
         return view('tasks.index', compact('tasks', 'projectId'));
     }
 
-    public function store(Request $request, $projectId)
+    public function addNewTask(Request $request, $projectId)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -67,7 +67,7 @@ class TaskController extends Controller
         }
     }
 
-    public function update(Request $request, $projectId, $taskId)
+    public function updateTask(Request $request, $projectId, $taskId)
     {
         $ownerId = auth()->user()->id;
         $projectId = $request->projectId;
@@ -125,7 +125,7 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    public function destroy($projectId, $taskId)
+    public function destroyTask($projectId, $taskId)
     {
         $ownerId = auth()->user()->id;
         $project = Project::where('id', $projectId)

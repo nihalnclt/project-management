@@ -28,12 +28,10 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/projects', [ProjectController::class, 'getAllProjects']);
     Route::post('/projects/{projectId}/invite', [ProjectController::class, 'inviteOthersToProject']);
     Route::get('/projects/{projectId}', [ProjectController::class, 'getSingleProjectWithTasks']);
-
-    Route::post('/tasks/{projectId}', [TaskController::class, 'store']);
-    Route::delete('/tasks/{projectId}/{taskId}', [TaskController::class, 'destroy']);
-    Route::patch('/tasks/{projectId}/{taskId}', [TaskController::class, 'update']);
-    Route::post('/tasks/{projectId}/{taskId}/assign', [TaskController::class, 'assignTaskToTeamMembers']);
-    Route::post('/tasks/{projectId}/{taskId}/change-status', [TaskController::class, 'changeTaskStatus']);
+    Route::post('/projects/{projectId}/tasks', [TaskController::class, 'addNewTask']);
+    Route::patch('/projects/{projectId}/tasks/{taskId}', [TaskController::class, 'updateTask']);
+    Route::delete('/projects/{projectId}/tasks/{taskId}', [TaskController::class, 'destroyTask']);
+    Route::post('/projects/{projectId}/tasks/{taskId}/change-status', [TaskController::class, 'changeTaskStatus']);
     
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/refresh', [AuthController::class, 'refresh']);

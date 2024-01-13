@@ -36,7 +36,7 @@ export default function CreateTaskModal({ setIsTaskModalOpen }: CreateTaskModalP
             setIsLoading(true);
             setError("");
 
-            const resposne = await axios.post(`/tasks/${project?.id}`, data, {
+            const resposne = await axios.post(`/projects/${project?.id}/tasks`, data, {
                 headers: {
                     Authorization: "Bearer " + jwtToken,
                 },
